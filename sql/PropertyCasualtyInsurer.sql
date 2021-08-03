@@ -1,0 +1,2 @@
+CREATE TABLE PropertyCasualtyInsurer( PropertyCasualtyInsurerID INT(10) UNSIGNED AUTO_INCREMENT PRIMARY KEY,PropertyCasualtyInsurerNAME VARCHAR(30) NOT NULL,PropertyCasualtyInsurerADDRESS VARCHAR(30) NOT NULL,PropertyCasualtyInsurerCITY VARCHAR(30) NOT NULL,PropertyCasualtyInsurerSTATE VARCHAR(30) NOT NULL,PropertyCasualtyInsurerCOUNTRY VARCHAR(30) NOT NULL,PropertyCasualtyInsurerZIPCODE VARCHAR(30) NOT NULL)
+

@@ -1,0 +1,2 @@
+CREATE TABLE Creditcardaccount( CreditcardaccountID INT(10) UNSIGNED AUTO_INCREMENT PRIMARY KEY,CreditcardaccountNAME VARCHAR(30) NOT NULL,CreditcardaccountADDRESS VARCHAR(30) NOT NULL,CreditcardaccountCITY VARCHAR(30) NOT NULL,CreditcardaccountSTATE VARCHAR(30) NOT NULL,CreditcardaccountCOUNTRY VARCHAR(30) NOT NULL,CreditcardaccountZIPCODE VARCHAR(30) NOT NULL)
+

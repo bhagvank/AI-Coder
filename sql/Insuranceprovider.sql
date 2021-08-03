@@ -1,0 +1,2 @@
+CREATE TABLE Insuranceprovider( InsuranceproviderID INT(10) UNSIGNED AUTO_INCREMENT PRIMARY KEY,InsuranceproviderNAME VARCHAR(30) NOT NULL,InsuranceproviderADDRESS VARCHAR(30) NOT NULL,InsuranceproviderCITY VARCHAR(30) NOT NULL,InsuranceproviderSTATE VARCHAR(30) NOT NULL,InsuranceproviderCOUNTRY VARCHAR(30) NOT NULL,InsuranceproviderZIPCODE VARCHAR(30) NOT NULL)
+
