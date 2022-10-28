@@ -1,2 +1,2 @@
 # AI-Coder
-Ai programmer generating code using Neural Sketch Learning
+Generative AI Coding Engine generating code using Neural Sketch Learning
