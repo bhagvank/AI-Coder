@@ -1,0 +1,89 @@
+<!DOCTYPE html> 
+<html ng-app="customersApp"> 
+<head> 
+<meta charset="utf-8"> 
+<title>CustomersForm</title> 
+<script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.1/angular.min.js"></script>
+<script>
+var customersApp= angular.module('customersApp', []);
+customersApp.controller('CustomerCtrl', function ($scope, $http,$location){
+var str = $location.absUrl();
+var params = str.split("?");
+var param_id = params[1].split("=");
+$scope.customers = [];
+$scope.customerForm = {
+customerid : param_id[1] };
+_refreshCustomerData(){
+$http({
+method : 'POST',
+'GetCustomer.php',
+	       data : angular.toJson($scope.customerForm),
+headers : {
+'Content-Type' : 'application/json'
+}
+}).then(function successCallback(response) {
+$scope.customerForm = response.data;
+     }, function errorCallback(response) {   }); }
+$scope.submitCustomer = function() {
+method = "POST";
+url = "UpdateCustomer.php"$http({
+method : method,
+url : url,
+data : angular.toJson($scope.customerForm),
+headers : {
+'Content-Type' : 'application/json'
+}
+}).then(_success,_error); };
+function _success(response) {
+_clearFormData();
+}
+function _error(response) {
+console.log(response.statusText);}
+function _clearFormData() {
+$scope.customerForm.name="";
+$scope.customerForm.city="";
+$scope.customerForm.state="";
+$scope.customerForm.zipcode="";
+$scope.customerForm.contactno="";
+$scope.customerForm.streetaddress="";
+$scope.customerForm.country="";
+};
+ });
+})(window.angular);
+</script>
+</head>
+<body>
+<div ng-app="customersApp" ng-controller="CustomerCtrl">
+<form ng-submit="submitCustomer()">
+<input type="hidden" ng-model="customerForm.customerID" />
+<div>
+<label>Name:<sup>*</sup></label>
+<input type="text" ng-model="customerForm.Name" />
+</div>
+<div>
+<label>City:<sup>*</sup></label>
+<input type="text" ng-model="customerForm.City" />
+</div>
+<div>
+<label>State:<sup>*</sup></label>
+<input type="text" ng-model="customerForm.State" />
+</div>
+<div>
+<label>ZipCode:<sup>*</sup></label>
+<input type="text" ng-model="customerForm.ZipCode" />
+</div>
+<div>
+<label>ContactNo:<sup>*</sup></label>
+<input type="text" ng-model="customerForm.ContactNo" />
+</div>
+<div>
+<label>StreetAddress:<sup>*</sup></label>
+<input type="text" ng-model="customerForm.StreetAddress" />
+</div>
+<div>
+<label>Country:<sup>*</sup></label>
+<input type="text" ng-model="customerForm.Country" />
+</div>
+</form></div>
+</body>
+</html>

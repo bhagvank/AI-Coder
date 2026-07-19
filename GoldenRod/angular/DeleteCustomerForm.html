@@ -1,0 +1,36 @@
+<!DOCTYPE html> 
+<html ng-app="customersApp"> 
+<head> 
+<meta charset="utf-8"> 
+<title>CustomersForm</title> 
+<script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.1/angular.min.js"></script>
+<script>
+var customersApp= angular.module('customersApp', []);
+customersApp.controller('CustomerCtrl', function ($scope, $http,$location){
+var str = $location.absUrl();
+var params = str.split("?");
+var param_id = params[1].split("=");
+$scope.customers = [];
+$scope.customerForm = {
+customerid : param_id[1] };
+_refreshCustomerData(){
+$http({
+method : 'POST',
+'DeleteCustomer.php',
+	       data : angular.toJson($scope.customerForm),
+headers : {
+'Content-Type' : 'application/json'
+}
+}).then(function successCallback(response) {
+$scope.customerForm = response.data;
+     }, function errorCallback(response) {   }); }
+ });
+})(window.angular);
+</script>
+</head>
+<body>
+<title>CustomerDelete </title>
+<h1>AngularJS Customer</h1>
+<h2> Customer deleted</h2>
+</body>
+</html>
