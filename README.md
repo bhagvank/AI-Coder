@@ -2,7 +2,7 @@
 
 **Neural Sketch Based Framework**
 
-Repository: [bhagvank/AI-Coder](https://github.com/bhagvank/AI-Coder) · Branch: `goldenrod`
+Repository: [bhagvank/AI-Coder](https://github.com/bhagvank/AI-Coder) · Branch: `Chartreuse`
 
 Author: Bhagvan Kommadi, Quantica Computacao (bhagvank@quanticacomputacao.com)
 
@@ -19,6 +19,48 @@ Key capabilities include:
 - Creating sample code and unit tests for software frameworks
 - Generating test data
 - Extensibility to support additional software APIs for code generation
+
+## Chartreuse — Reference Application
+
+The [`Chartreuse/`](Chartreuse/) folder contains the **runtime reference application** for the AI-Coder framework. Chartreuse (branded **Architect Corner**) is a metadata-driven Java EE web app that demonstrates:
+
+- **Metadata-driven CRUD** — XML-configured forms, lists, and entity operations via Java reflection
+- **Multi-tier persistence** — JDBC DAOs against MySQL, MongoDB for big-data staging
+- **Analytics** — CSV ingestion, Java2D chart generation with linear regression
+- **AI / sentiment** — RSS feed analysis and keyword-based sentiment detection
+
+```
+Chartreuse/
+├── src/org/archcorner/chartreuse/    # Core: metadata, delegates, DAOs, POJOs, bigdata, charting
+├── src/org/architectcorner/ai/       # AI: sentiment analysis, media response
+├── WebContent/                       # 35 JSP pages (CRUD, analytics, sentiment)
+├── belfortappconfig.xml              # Entity/view/form metadata (8 entities)
+└── architecture.md                   # Detailed architecture documentation
+```
+
+See [Chartreuse/architecture.md](Chartreuse/architecture.md) for system diagrams, layer design, entity model, and request flows.
+
+### Quick Start (Chartreuse)
+
+**Prerequisites:** Java 9, Eclipse WTP, Apache Tomcat 9, MySQL (`belfort` database), MongoDB
+
+1. Import the Chartreuse project into Eclipse
+2. Update the XML config path in `AppConfigManager.java` to point to your local `belfortappconfig.xml`
+3. Configure MySQL/MongoDB credentials in `JDBCManager.java`
+4. Deploy to Tomcat — welcome page is `Login.jsp`
+
+### Configured Entities
+
+| # | Entity | Layers |
+|---|--------|--------|
+| 1 | User | POJO, DAO, BusinessDelegate |
+| 2 | Disaster | POJO, DAO, BusinessDelegate, Service |
+| 3 | Customer | POJO, DAO, BusinessDelegate, Service |
+| 4 | Order | POJO, DAO, BusinessDelegate, Service |
+| 5 | Product | POJO, DAO, BusinessDelegate, Service |
+| 6 | Resource | POJO, DAO, BusinessDelegate, Service |
+| 7 | Vendor | POJO, DAO, BusinessDelegate |
+| 8 | Partner | POJO, DAO, BusinessDelegate |
 
 ## How It Works
 
@@ -72,7 +114,7 @@ The application architecture is designed to be extended with commercial packages
 
 ## Sample Configuration
 
-The framework is driven by XML configuration that defines an application's views, forms, and data operations. A sample `User` entity configuration includes:
+The framework is driven by XML configuration that defines an application's views, forms, and data operations. Chartreuse uses `belfortappconfig.xml` with this structure. A sample `User` entity configuration includes:
 
 - **View** — defines the fields shown for an entity (e.g. `UserId`, `UserName`, `Password`)
 - **Form** — defines the fields collected on create (e.g. `UserName`, `Password`)
@@ -96,6 +138,8 @@ Example (`User` view):
 </app>
 ```
 
+At runtime, `AppConfigManager` reads this XML to drive JSP form generation, and `MetadataManager` uses Java reflection to invoke the matching `{Entity}BusinessDelegate` methods — no per-entity JSP code is required.
+
 ## Web Service Layer
 
 AI Coder also generates the corresponding SOAP/WSDL web service layer for an entity. For the `User` entity, the generated `UserService` exposes:
@@ -109,9 +153,18 @@ AI Coder also generates the corresponding SOAP/WSDL web service layer for an ent
 
 Each operation's request/response schema (types, elements, and messages) is generated from the `User` complex type, which includes `userId`, `userName`, and `password`.
 
+## Repository Branches
+
+| Branch | Contents |
+|--------|----------|
+| `Chartreuse` | Runtime reference application (Java EE, JSP, MySQL, MongoDB) |
+| `goldenrod` | Code generation engine (multi-target: Java, PHP, AngularJS, Django) |
+| `leather` | Additional framework modules |
+| `main` | Project root documentation and papers |
+
 ## Conclusion
 
-The application configuration can be extended across additional layers such as services, entities, persistence, and data access. This neural sketch–based mobile application framework can be applied to a wide range of software applications beyond the sample shown here.
+The application configuration can be extended across additional layers such as services, entities, persistence, and data access. This neural sketch–based mobile application framework can be applied to a wide range of software applications beyond the sample shown here. Chartreuse provides the working runtime that consumes generated code and renders metadata-driven applications end to end.
 
 ## References
 
