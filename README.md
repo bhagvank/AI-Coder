@@ -1,173 +1,225 @@
-# AI Coder
+# Emerald Architecture
 
-**Neural Sketch Based Framework**
+## System Overview
 
-Repository: [bhagvank/AI-Coder](https://github.com/bhagvank/AI-Coder) · Branch: `Chartreuse`
-
-Author: Bhagvan Kommadi, Quantica Computacao (bhagvank@quanticacomputacao.com)
-
-## Overview
-
-AI Coder is an AI bot that generates code in PHP, Ruby on Rails, Django, Java, and Python — including Python/Django and other frameworks. Rather than requiring developers to write code by hand, AI Coder is given basic information about the entities involved in the application, and it produces the corresponding code.
-
-AI Coder is built on **neural sketch learning**: an artificial neural network trained to recognize code-level patterns across different software by "reading" large volumes of human-written code and repository content. From this training it learns to generate code based on an application's components.
-
-Key capabilities include:
-
-- Generating application code from entity, rule, tool, and protocol definitions
-- Reading from a code repository and generating code based on existing components
-- Creating sample code and unit tests for software frameworks
-- Generating test data
-- Extensibility to support additional software APIs for code generation
-
-## Chartreuse — Reference Application
-
-The [`Chartreuse/`](Chartreuse/) folder contains the **runtime reference application** for the AI-Coder framework. Chartreuse (branded **Architect Corner**) is a metadata-driven Java EE web app that demonstrates:
-
-- **Metadata-driven CRUD** — XML-configured forms, lists, and entity operations via Java reflection
-- **Multi-tier persistence** — JDBC DAOs against MySQL, MongoDB for big-data staging
-- **Analytics** — CSV ingestion, Java2D chart generation with linear regression
-- **AI / sentiment** — RSS feed analysis and keyword-based sentiment detection
+Emerald is a Java EE web application following a layered architecture with JSP pages acting as both controllers and views. The system centers on a Data-as-a-Service (DaaS) pattern backed by MongoDB, with supplementary AI/ML modules that can be invoked independently or through the web UI.
 
 ```
-Chartreuse/
-├── src/org/archcorner/chartreuse/    # Core: metadata, delegates, DAOs, POJOs, bigdata, charting
-├── src/org/architectcorner/ai/       # AI: sentiment analysis, media response
-├── WebContent/                       # 35 JSP pages (CRUD, analytics, sentiment)
-├── belfortappconfig.xml              # Entity/view/form metadata (8 entities)
-└── architecture.md                   # Detailed architecture documentation
+┌─────────────────────────────────────────────────────────┐
+│                     Browser (JSP UI)                    │
+│  Login | CRUD | Charts | Sentiment | Speech | ML Pages  │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────┐
+│               Business Delegate Layer                    │
+│                    BigDataDelegate                       │
+│          (insert/update/delete/query MongoDB)            │
+└──────┬──────────────────────────────────────┬───────────┘
+       │                                      │
+┌──────▼──────────┐              ┌────────────▼───────────┐
+│   NoSqlMapper   │              │   RDBMSMapper (MySQL)  │
+│   (MongoDB)     │              │   (stub)               │
+└──────┬──────────┘              └────────────────────────┘
+       │
+┌──────▼──────────────────────────────────────────────────┐
+│              MongoDB (DAAS database)                     │
+│   Collections: User, <entity>Type, entity data          │
+└─────────────────────────────────────────────────────────┘
 ```
 
-See [Chartreuse/architecture.md](Chartreuse/architecture.md) for system diagrams, layer design, entity model, and request flows.
+## Layer Architecture
 
-### Quick Start (Chartreuse)
+### 1. Presentation Layer (WebContent/)
 
-**Prerequisites:** Java 9, Eclipse WTP, Apache Tomcat 9, MySQL (`belfort` database), MongoDB
+JSP pages serve as the UI. There is no separate MVC framework; JSP scriptlets contain business logic that calls delegates directly.
 
-1. Import the Chartreuse project into Eclipse
-2. Update the XML config path in `AppConfigManager.java` to point to your local `belfortappconfig.xml`
-3. Configure MySQL/MongoDB credentials in `JDBCManager.java`
-4. Deploy to Tomcat — welcome page is `Login.jsp`
+| JSP | Purpose |
+|-----|---------|
+| `Login.jsp` / `LoginUser.jsp` | Authentication against MongoDB `User` collection |
+| `CRUD.jsp` | Hub page linking to all data operations |
+| `CreateEntity.jsp` / `SaveForm.jsp` | Define new entity types with field definitions |
+| `EntityList.jsp` / `SaveEntity.jsp` | List and create entity records |
+| `SearchEntity.jsp` / `UpdateEntity.jsp` | Search and update records |
+| `DataUpload.jsp` / `StoreData.jsp` | CSV file upload and storage |
+| `GenerateGraph.jsp` / `ShowChart.jsp` | Chart generation and display |
+| `socialmedianalysis.jsp` / `ShowSentiments.jsp` | Social media sentiment analysis |
+| `timeAlert.jsp` | Text-to-speech demo |
+| `GeoLocation.jsp` | HTML5 geolocation |
+| `Paas.jsp` | Platform-as-a-Service landing page |
 
-### Configured Entities
+### 2. Business Delegate Layer
 
-| # | Entity | Layers |
-|---|--------|--------|
-| 1 | User | POJO, DAO, BusinessDelegate |
-| 2 | Disaster | POJO, DAO, BusinessDelegate, Service |
-| 3 | Customer | POJO, DAO, BusinessDelegate, Service |
-| 4 | Order | POJO, DAO, BusinessDelegate, Service |
-| 5 | Product | POJO, DAO, BusinessDelegate, Service |
-| 6 | Resource | POJO, DAO, BusinessDelegate, Service |
-| 7 | Vendor | POJO, DAO, BusinessDelegate |
-| 8 | Partner | POJO, DAO, BusinessDelegate |
+**`BigDataDelegate`** (`platform/businessdelegate/`) is the single entry point for all data operations. It wraps `NoSqlMapper` and provides:
 
-## How It Works
+- `insertRecord(database, collection, document)`
+- `updateRecord(database, collection, whereQuery, updateQuery)`
+- `deleteRecord(database, collection, whereQuery)`
+- `getRecord(database, collection, whereQuery)`
+- `getRecords(database, collection, whereQuery, fields)`
 
-### Neural Sketch Learning
+### 3. Data Access Layer
 
-Code generation is driven by a syntax and semantics specification supplied as input. The framework is trained by being shown applications that are already configured within it (a **supervised learning** approach). Training input consists of a set of applications configured in terms of their views, entities, and actions; metadata from these configurations teaches the framework the application's semantics — its data types, methods, control flow, exceptions, and entity types.
+#### MongoDB (`dataservices/NoSqlMapper`)
+- Connects to `localhost:27017`, database `DAAS`
+- Uses `BasicDBObject` for queries and updates
+- Handles `ObjectId` for record identification
+- Key methods: `getQueryRecords()`, `insertRecord()`, `updateRecord()`
 
-The neural sketch framework combines **neural learning and combinatorial search** to identify patterns and render applications, while enforcing the constraints defined in the configuration file. Internally, the source code can build tree-based syntactic models ("sketches") of a program.
+#### MySQL (`platform/util/JDBCManager`)
+- Connects to `localhost:3306/belfort`
+- Used as secondary data store
+- Managed via `RDBMSMapper` / `RDBMSReducer` (stubs)
 
-A **sketch** corresponds to a class, entity, or method — including its arguments, return values, and control flow.
+#### MapReduce Abstraction (`dataservices/`)
+```
+Mapper ──► RDBMSMapper / NoSqlMapper
+Partitioner
+Reducer ──► RDBMSReducer / NoSqlReducer
+```
+Provides a MapReduce-style interface for data processing across RDBMS and NoSQL stores.
 
-### Application Framework
+### 4. Job/Task Execution Framework (`machinelearning/management/`)
 
-The framework follows a **metadata-driven architecture**, with metadata stored and modeled using the object repository pattern. Metadata is read to render applications assuming a microservices-based architecture with the following layers:
-
-- **Service layer**
-- **Services client (mobile)**
-- **Persistence layer**
-- **Data access layer**
-- **Database layer**
-
-Each layer is implemented using language SDK– and platform-specific patterns and practices, with metadata attributes configured per layer. Applications built with the framework are configurable and extensible through events, delegates, templates, services, and classes, and support customization without code changes (with custom modules loadable when code changes are needed).
-
-This approach targets **native, hybrid, and web-based mobile applications**, and can be used across iOS, Android, and Windows, along with their respective programming language SDKs. Because the approach is not tied to a specific technology stack, it can be upgraded by changing the framework's implementation in the relevant layer.
-
-## Application Architecture
-
-The application architecture is designed to be extended with commercial packages and software, using only the functionality required, and includes:
-
-- **Security & licensing** enforcement
-- **Auditing** of inserts, edits, and deletions
-- **Multi-tiered, entity-context sensitive security** for data and actions across user roles and groups
-- **Admin-level metadata management** through screens, plus developer-level configuration of metadata and programmatic updates
-
-### Platform Features
-
-| Feature | Description |
-|---|---|
-| Search | Google-like full search across platform data |
-| Document Management | Core document management with third-party integration support |
-| Business Rules | Rules linked to events or time |
-| Workflow | Base workflow functionality, extensible per product |
-| Scheduler | Admin-configurable periodic actions |
-| Calendar | Scheduling of calendar events |
-| Notifications | Rule-based notifications via email and other formats |
-| Reporting | Scheduled and ad-hoc reporting across all data |
-| Internationalization | Multiple languages, currencies, and locales |
-| Integrations | Event- or batch-driven synchronization with external systems via configurable protocols |
-| User Interface | Web-based UI, customizable by administrators |
-| Domain Objects | Creation/modification of domain objects, attributes, and relationships to other objects and reference data |
-
-## Sample Configuration
-
-The framework is driven by XML configuration that defines an application's views, forms, and data operations. Chartreuse uses `belfortappconfig.xml` with this structure. A sample `User` entity configuration includes:
-
-- **View** — defines the fields shown for an entity (e.g. `UserId`, `UserName`, `Password`)
-- **Form** — defines the fields collected on create (e.g. `UserName`, `Password`)
-- **Update** — defines the form, ID field, search field, and editable fields for updates
-- **Delete** — defines the form, ID field, search field, and fields used for deletion
-
-Example (`User` view):
-
-```xml
-<app>
-  <view>
-    <name>User</name>
-    <viewno>1</viewno>
-    <viewFields>
-      <viewField>UserId</viewField>
-      <viewField>UserName</viewField>
-      <viewField>Password</viewField>
-    </viewFields>
-  </view>
-  ...
-</app>
+```
+JobManager
+  └── Job
+        ├── JobInput  (List<List<String>>)
+        ├── JobOutput (List<List<String>>)
+        └── ITask[] ──► BigDataTask (CSV parsing demo)
 ```
 
-At runtime, `AppConfigManager` reads this XML to drive JSP form generation, and `MetadataManager` uses Java reflection to invoke the matching `{Entity}BusinessDelegate` methods — no per-entity JSP code is required.
+- **`IJob`** / **`Job`**: Defines a unit of work containing a list of `ITask` instances.
+- **`ITask`** / **`Task`** / **`TaskManager`**: Task abstraction for processing units.
+- **`BigDataTask`**: Parses CSV data (hardcoded `airmiles.csv` path).
+- **`JobManager`**: Orchestrates job creation and execution.
 
-## Web Service Layer
+## AI/ML Modules
 
-AI Coder also generates the corresponding SOAP/WSDL web service layer for an entity. For the `User` entity, the generated `UserService` exposes:
+Each module is a standalone prototype with `main()` methods and demo data.
 
-- `getAll` — retrieve all users
-- `getUser` — retrieve a user by username
-- `getUserById` — retrieve a user by ID
-- `insertUser` — create a user
-- `updateUser` — update a user
-- `deleteUser` — delete a user
+### Linear Regression (`datascience/LinearRegression`)
+- `getLinearFit(double[] x, double[] y)` - Computes slope and intercept.
+- `getLinearFitFromStringValues(List<List<String>>)` - Parses string data for regression.
+- Used by `ChartingManager` for trend line generation.
 
-Each operation's request/response schema (types, elements, and messages) is generated from the `User` complex type, which includes `userId`, `userName`, and `password`.
+### Deep Neural Network (`neuralnetwork/backpropagation/DeepNeuralNetwork`)
+- Multi-layer network with configurable layers and weights.
+- Methods: `train()`, `forwardPass()`, `recall()`, `calculateMomentum()`.
+- Demo: crime code classification (text-matching approach).
 
-## Repository Branches
+### Hopfield Network (`neuralnetwork/hopfield/HopField`)
+- Pattern recognition via energy minimization.
+- Methods: `train()`, `recall()`, `deltaEnergy()`.
+- Demo: sentiment-based text classification (profanity detection).
 
-| Branch | Contents |
-|--------|----------|
-| `Chartreuse` | Runtime reference application (Java EE, JSP, MySQL, MongoDB) |
-| `goldenrod` | Code generation engine (multi-target: Java, PHP, AngularJS, Django) |
-| `leather` | Additional framework modules |
-| `main` | Project root documentation and papers |
+### Genetic Algorithm (`geneticalgorithm/processing/`)
+- **`Person`**: Individual with 500 genes, fitness calculation, mutation.
+- **`Population`**: Collection of individuals with total fitness.
 
-## Conclusion
+### Simulated Annealing (`simulatedannealing/processing/SimulatedAnnealingManager`)
+- Probabilistic optimization via `getProbabilityAcceptance()`.
+- Demo: trading lot optimization.
 
-The application configuration can be extended across additional layers such as services, entities, persistence, and data access. This neural sketch–based mobile application framework can be applied to a wide range of software applications beyond the sample shown here. Chartreuse provides the working runtime that consumes generated code and renders metadata-driven applications end to end.
+### Recommendation Engine (`recommendationengine/`)
+- **`User`**: ID, favourites, ratings.
+- **`Product`**: ID, brand, model, attributes.
+- **`RecommendationManager`**: Matches products to user preferences.
 
-## References
+## Speech Processing
 
-1. V. Murali, L. Qi, S. Chaudhuri, C. Jermaine, *Neural Sketch Learning for Conditional Program Generation*
-2. M. Amodio, S. Chaudhuri, T. Reps, *Neural Attribute Machines for Program Generation*
-3. M. Balog, A. L. Gaunt, M. Brockschmidt, S. Nowozin, *DeepCoder: Learning to Write Programs*
+```
+┌──────────────────┐     ┌───────────────────────┐
+│ SpeechProcessing │     │ SpeechRecognition      │
+│ Manager (FreeTTS)│     │ Manager (Sphinx4)      │
+│ Text → voice.wav │     │ voice.wav → text        │
+└──────────────────┘     └───────────────────────┘
+```
+
+- **Synthesis**: FreeTTS with `kevin16` voice, outputs `voice.wav`.
+- **Recognition**: Sphinx4 `StreamSpeechRecognizer` with `en-us` acoustic model.
+
+## Social Media & Sentiment Analysis (`mediaresponse/`)
+
+```
+MediaResponseManager
+  ├── MediaSourceAnalyzer (RSS feeds via ROME)
+  │     ├── checkForNetwork (entity extraction)
+  │     └── detectPOS (part-of-speech via POSDetector)
+  ├── SentimentAnalyzer (keyword matching)
+  ├── WebApp (depth-limited web crawler)
+  └── HTMLUtil / RTFUtil / URLHelper (parsing utilities)
+```
+
+- Crawls RSS feeds and web pages for content.
+- Extracts entities (persons, places) and performs POS tagging.
+- Matches found text against sentiment dictionaries.
+
+## Simulation Engine (`simulation/`)
+
+```
+SimulationManager
+  └── EventFlow
+        ├── EventLanes
+        ├── EventPath (with probability)
+        └── Event (ACTION | DISPLAY)
+```
+
+- Discrete event simulation with typed events (`ACTION`, `DISPLAY`).
+- Events flow through paths with associated probabilities.
+- Demo: bus station passenger simulation.
+
+## Charting (`platform/charting/ChartingManager`)
+
+Generates charts as JPEG images using Java AWT/Swing:
+
+| Method | Output |
+|--------|--------|
+| `drawPieGraph()` | Pie chart |
+| `drawBarGraph()` | Bar chart |
+| `drawScaledBarGraph()` | Scaled bar chart |
+| `drawLineGraph()` | Line graph |
+| `drawFitLineGraph()` | Line graph with linear regression fit |
+| `generateGraph()` | Parse CSV and generate appropriate chart |
+| `generateFitGraph()` | CSV data with regression overlay |
+
+Uses `JPEGCodec` for image encoding.
+
+## Data Flow
+
+### Entity CRUD Flow
+```
+Browser → JSP (scriptlet) → BigDataDelegate → NoSqlMapper → MongoDB
+```
+
+### CSV Upload Flow
+```
+Browser → DataUpload.jsp → CsvParser → BigDataDelegate → MongoDB
+```
+
+### Chart Generation Flow
+```
+Browser → GenerateGraph.jsp → ChartingManager → AWT Drawing → JPEG → Browser
+```
+
+### Sentiment Analysis Flow
+```
+Browser → socialmedianalysis.jsp → MediaResponseManager
+  → MediaSourceAnalyzer → ROME RSS parser
+  → SentimentAnalyzer → results to JSP
+```
+
+## Database Schema (MongoDB `DAAS`)
+
+| Collection | Purpose | Key Fields |
+|------------|---------|------------|
+| `User` | Authentication | username, password |
+| `<entity>Type` | Entity type definitions | Fieldname, FieldType |
+| (dynamic) | Entity instance data | _id, user-defined fields |
+
+## Known Limitations
+
+1. **No MVC framework** - JSP scriptlets contain business logic directly.
+2. **Hardcoded paths** - ML modules reference absolute filesystem paths (e.g., `/Users/bhagvan_kommadi/Desktop/BigData/...`).
+3. **External dependency** - Some JSPs reference `org.archcorner.chartreuse.esb.*` which is not included in this project.
+4. **Stub implementations** - `RDBMSMapper`, `RDBMSReducer`, `NoSqlReducer`, `Node`, `Resource` are empty stubs.
+5. **No authentication middleware** - Security is handled per-JSP without a filter or interceptor pattern.
